@@ -10,4 +10,4 @@ st.write("# Welcome to the Hidetone Tekken Tournament")
 
 ss.sorted_teams = sort_items(ss.teams, multi_containers=True, direction='vertical')
 
-ss.player_data = ss.setup_player_data.copy()
+ss.player_data = ss.setup_player_data

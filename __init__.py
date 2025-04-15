@@ -6,8 +6,8 @@ import pandas as pd
 def initialize_ss():
     if 'player_data' not in ss:
         ss['player_data'] = pd.DataFrame({'name':['P1', 'P2']})
-    if 'setup_player_list' not in ss:
-        ss['setup_player_list'] = ss.player_data.copy()
+    if 'setup_player_data' not in ss:
+        ss['setup_player_data'] = ss.player_data
     if 'team_config' not in ss:
         ss['team_config'] = {'P1':{'team': 0, 'pos': 0, 'idx': 0},
                             'P2':{'team': 0, 'pos': 1, 'idx': 1}}
@@ -22,6 +22,6 @@ def initialize_ss():
             {'header': 'Team 6',  'items': []},
         ]
     if 'sorted_teams' not in ss:
-        ss['sorted_teams'] = ss.teams.copy()
+        ss['sorted_teams'] = ss.teams
     if 'num_teams' not in ss:
         ss['num_teams'] = 0

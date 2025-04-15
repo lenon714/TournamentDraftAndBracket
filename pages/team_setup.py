@@ -58,6 +58,8 @@ for player in removed_players:
             if player == item:
                 ss.sorted_teams[i]['items'].remove(player)
 
+ss.setup_player_data = ss.setup_player_data.reset_index(drop=True)
+
 ss.team_config = {}
 for i, team in enumerate(ss.sorted_teams):
     for j, player in enumerate(team['items']):
