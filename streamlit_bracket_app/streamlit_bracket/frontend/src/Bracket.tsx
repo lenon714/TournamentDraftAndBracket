@@ -54,7 +54,7 @@ const SingleElimination = (props: ComponentProps) => {
       matches={matches}
       matchComponent={Match}
       svgWrapper={({ children, ...props }: SVGWrapperProps) => (
-        <SVGViewer width={2000} height={1600} {...props}>
+        <SVGViewer width={10000} height={10000} {...props}>
           {children}
         </SVGViewer>
       )}
