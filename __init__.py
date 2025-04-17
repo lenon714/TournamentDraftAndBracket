@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit.components.v1 as components
 import os
 from bracket_app import tournament_bracket
+import math
 
 def initialize_ss():
     if 'player_data' not in ss:

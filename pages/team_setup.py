@@ -23,27 +23,29 @@ def remove_players(removed_players):
 def generate_player_config():
     for i, team in enumerate(ss.sorted_teams):
         for j, player in enumerate(team['items']):
-            for k, item in enumerate(ss.setup_player_data.name):
+            for k, item in enumerate(ss.setup_player_data['name']):
                 if item == player:
                     ss.player_config[player] = {'team': i, 'pos': j, 'idx': k, 'cap': ss.setup_player_data['captain'][k]}
 
 def update_captains():
-    for i, player in enumerate(ss.setup_player_data.name):
+    for i, player in enumerate(ss.setup_player_data.iloc[:, 0]):
         # Check if player is a captain
         if ss.setup_player_data['captain'][i]:
             # Find which teams have captains
             cap_dict = find_captains()
-            for team in cap_dict.keys():
-                if cap_dict[team] < 1 and team != 0:
+            for team in list(cap_dict.keys())[1::]:
+                if cap_dict[team] < 1:
                     # Insert player at top of captainless team
                     ss.sorted_teams[team]['items'].insert(0, player)
                     # Remove them from original location
                     ss.sorted_teams[ss.player_config[player]['team']]['items'].remove(player)
+                    ss.sorted_teams[team]['header'] = str('Team ' + player)
                     generate_player_config()
                     break
-                # elif team == ss.player_config[player]['team'] and cap_dict[team] == 1 and team != 0:
-                #     generate_player_config()
-                #     break
+                elif team == ss.player_config[player]['team'] and cap_dict[team] == 1:
+                    ss.sorted_teams[team]['header'] = str('Team ' + player)
+                    generate_player_config()
+                    break
 
 def find_captains():
     cap_dict = {}

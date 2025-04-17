@@ -1,5 +1,5 @@
 // Bracket.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SingleEliminationBracket,
   Match,
@@ -34,33 +34,25 @@ type SVGWrapperProps = {
   [key: string]: any;
 };
 
-interface Props {
-  matches: MatchData[];
-}
-
-// Add a theme configuration
-const theme = createTheme({
-  textColor: { main: '#000000', highlighted: '#FFFFFF' },
-  matchBackground: { wonColor: '#da96c6', lostColor: '#a4a4a4' },
-  scoreBackground: { wonColor: '#da96c6', lostColor: '#a4a4a4' },
-});
-
 const SingleElimination = (props: ComponentProps) => {
+  // const width = 1250;
+  // const height = 600;
+  // const scale = 0.5;
   useEffect(() => Streamlit.setFrameHeight());
-  const {matches} = props.args
+
+  const { matches } = props.args;
+
+  if (!matches || matches.length === 0) {
+    return <div>No matches to display.</div>;
+  }
 
   return (
     <SingleEliminationBracket
       matches={matches}
       matchComponent={Match}
-      svgWrapper={({ children, ...props }: SVGWrapperProps) => (
-        <SVGViewer width={10000} height={10000} {...props}>
-          {children}
-        </SVGViewer>
-      )}
+      // scaleFactor={scale}
     />
   );
 };
 
 export default withStreamlitConnection(SingleElimination)
-// export default SingleElimination
