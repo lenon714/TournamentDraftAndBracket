@@ -1,9 +1,8 @@
 // Bracket.tsx
 import React, { useEffect, useState, useRef} from "react";
 import {
-  SingleEliminationBracket,
+  DoubleEliminationBracket,
   Match,
-  SVGViewer,
   createTheme,
 } from "@g-loot/react-tournament-brackets";
 import { Streamlit, withStreamlitConnection, ComponentProps } from "streamlit-component-lib";
@@ -22,6 +21,7 @@ interface MatchData {
   id: number;
   name: string;
   nextMatchId: number | null;
+  nextLooserMatchId: number | null,
   tournamentRoundText: string;
   startTime: string;
   state: string;
@@ -34,7 +34,7 @@ type SVGWrapperProps = {
   [key: string]: any;
 };
 
-const SingleElimination = (props: ComponentProps) => {
+const DoubleElimination = (props: ComponentProps) => {
   const matches = props.args.matches || [];
 
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -71,7 +71,7 @@ const SingleElimination = (props: ComponentProps) => {
         display: "inline-block",
       }}
     >
-      <SingleEliminationBracket
+      <DoubleEliminationBracket
         matches={props.args.matches}
         matchComponent={Match}
       />
@@ -80,4 +80,4 @@ const SingleElimination = (props: ComponentProps) => {
   );
 };
 
-export default withStreamlitConnection(SingleElimination)
+export default withStreamlitConnection(DoubleElimination)
