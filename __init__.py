@@ -8,12 +8,16 @@ from bracket_app import tournament_bracket
 
 def initialize_ss():
     if 'player_data' not in ss:
-        ss['player_data'] = pd.DataFrame({'name':['P1', 'P2']})
+        ss['player_data'] = pd.DataFrame({'name':['P1', 'P2'], 'captain':[True, False]})
     if 'setup_player_data' not in ss:
         ss['setup_player_data'] = ss.player_data
     if 'player_config' not in ss:
-        ss['player_config'] = {'P1':{'team': 0, 'pos': 0, 'idx': 0},
-                            'P2':{'team': 0, 'pos': 1, 'idx': 1}}
+        # team: Current team player is placed in
+        # pos: Current position on the team
+        # idx: Current index on player list
+        # cap: If they are a captain
+        ss['player_config'] = {'P1':{'team': 0, 'pos': 0, 'idx': 0, 'cap': True},
+                            'P2':{'team': 0, 'pos': 1, 'idx': 1, 'cap': False}}
     if 'teams' not in ss:
         ss['teams'] = [
             {'header': 'Player List', 'items': ['P1', 'P2']},
