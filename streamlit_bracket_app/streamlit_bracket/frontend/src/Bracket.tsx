@@ -1,5 +1,5 @@
 // Bracket.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef} from "react";
 import {
   SingleEliminationBracket,
   Match,
@@ -35,23 +35,48 @@ type SVGWrapperProps = {
 };
 
 const SingleElimination = (props: ComponentProps) => {
-  // const width = 1250;
-  // const height = 600;
-  // const scale = 0.5;
-  useEffect(() => Streamlit.setFrameHeight());
+  const matches = props.args.matches || [];
 
-  const { matches } = props.args;
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const resize = () => {
+      if (!wrapperRef.current) return;
+
+      const parentWidth = wrapperRef.current.parentElement?.offsetWidth || 800;
+      const bracketWidth = wrapperRef.current.scrollWidth;
+
+      const newScale = Math.min(parentWidth / bracketWidth, 1); // shrink only
+      setScale(newScale);
+      Streamlit.setFrameHeight();
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [props.args.matches]);
 
   if (!matches || matches.length === 0) {
     return <div>No matches to display.</div>;
   }
 
   return (
-    <SingleEliminationBracket
-      matches={matches}
-      matchComponent={Match}
-      // scaleFactor={scale}
-    />
+    <div style={{ width: "100%", overflowX: "auto" }}>
+    <div
+      ref={wrapperRef}
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        display: "inline-block",
+      }}
+    >
+      <SingleEliminationBracket
+        matches={props.args.matches}
+        matchComponent={Match}
+      />
+    </div>
+  </div>
   );
 };
 

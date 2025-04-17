@@ -108,9 +108,11 @@ for i, ID in enumerate(bracketID[0]):
         })
 
 for i, t_round in enumerate(bracketID[1::]):
-    for ID in t_round: 
+    for j, ID in enumerate(t_round): 
+        print("i " + str(i))
+        print("j " + str(j//2))
         try:
-            nextID = bracketID[i+2][i//2]
+            nextID = bracketID[i+2][j//2]
         except:
             nextID = None
         matches.append({
