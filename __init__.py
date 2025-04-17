@@ -2,10 +2,14 @@ import streamlit as st
 from streamlit_sortables import sort_items
 from streamlit import session_state as ss
 import pandas as pd
+from pyvis.network import Network
+import streamlit.components.v1 as components
+import os
+from bracket_app import tournament_bracket
 
 def initialize_ss():
     if 'player_data' not in ss:
-        ss['player_data'] = pd.DataFrame({'name':['P1', 'P2']})
+        ss['player_data'] = pd.DataFrame({'name':['P1', 'P2'], 'captain':[True, False]})
     if 'setup_player_data' not in ss:
         ss['setup_player_data'] = ss.player_data
     if 'team_config' not in ss:

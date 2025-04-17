@@ -31,9 +31,16 @@ ss.setup_player_data = st.data_editor(
     column_config={
         "name": st.column_config.Column(
             "List of Players",
-            width="medium",
+            width="large",
             required=True,
+            pinned=True,
         ),
+        "captain": st.column_config.CheckboxColumn(
+            "Captains",
+            width="medium",
+            default=False,
+            pinned=True,
+        )
     },
     hide_index=True,
     num_rows="dynamic",

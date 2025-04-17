@@ -1,0 +1,41 @@
+{
+  "name": "streamlit_bracket",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@g-loot/react-tournament-brackets": "^1.0.31-rc",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "streamlit-component-lib": "^2.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": ".",
+  "devDependencies": {
+    "@types/node": "^20.17.30",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "react-scripts": "^5.0.1",
+    "typescript": "^4.2.0"
+  },
+  "proxy": "http://localhost:3001"
+}
