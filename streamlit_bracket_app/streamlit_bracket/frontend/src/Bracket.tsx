@@ -1,6 +1,7 @@
 // Bracket.tsx
 import React, { useEffect, useState, useRef} from "react";
 import {
+  SingleEliminationBracket,
   DoubleEliminationBracket,
   Match,
   createTheme,

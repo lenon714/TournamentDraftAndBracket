@@ -69,45 +69,66 @@ def generate_bracket_ids(num_teams):
 
     return bracket
 
-def generate_double_elim_ids(num_teams):
-    if num_teams < 2:
-        raise ValueError("Number of teams must be at least 2")
+def generate_double_elim_bracket(num_teams):
+    assert (num_teams & (num_teams - 1)) == 0, "Teams must be power of 2"
+    num_rounds = int(math.log2(num_teams))
     
-    rounded = next_power_of_two(num_teams)
-    num_winners_matches = rounded - 1
-    num_losers_matches = rounded - 2  # Typically one fewer than winners
-    total_matches = num_winners_matches + num_losers_matches + 1  # +1 for Grand Final
+    match_dict = {}
     match_id = 1
-    structure = {}
 
-    # Winners bracket
-    structure["upper"] = []
-    matches = rounded // 2
-    while matches > 0:
-        round_matches = list(range(match_id, match_id + matches))
-        structure["upper"].append(round_matches)
-        match_id += matches
-        matches //= 2
+    winners_matches = []
+    losers_matches = []
 
-    # Losers bracket (simplified as flat rounds)
-    structure["lower"] = []
-    losers_rounds = int(math.log2(rounded))  # approximate
-    matches_per_round = [rounded//4, rounded//4, rounded//8, 1]  # Can be refined
-    for m in matches_per_round:
-        if m == 0:
-            continue
-        round_matches = list(range(match_id, match_id + m))
-        structure["lower"].append(round_matches)
-        match_id += m
+    # Generate Winners Bracket
+    for r in range(num_rounds):
+        round_matches = []
+        for _ in range(num_teams // (2 ** (r + 1))):
+            m = f'U{match_id}'
+            match_dict[m] = {'upper': None, 'lower': None}
+            round_matches.append(m)
+            match_id += 1
+        winners_matches.append(round_matches)
 
-    # Grand Final
-    structure["grands"] = [match_id]
-    match_id += 1
+    # Generate Losers Bracket (2*num_rounds - 1 rounds)
+    total_losers_rounds = 2 * num_rounds - 1
+    for r in range(total_losers_rounds):
+        round_matches = []
+        num_matches = num_teams // (2 ** ((r // 2) + 1)) if r < total_losers_rounds - 1 else 1
+        for _ in range(num_matches):
+            m = f'L{match_id}'
+            match_dict[m] = {'upper': None, 'lower': None}
+            round_matches.append(m)
+            match_id += 1
+        losers_matches.append(round_matches)
 
-    # Optional Reset Match
-    structure["reset"] = [match_id]  # You can omit this if not used
+    # Wire Winners Bracket
+    for r, round_matches in enumerate(winners_matches[:-1]):
+        next_round = winners_matches[r + 1]
+        for i, m in enumerate(round_matches):
+            next_m = next_round[i // 2]
+            match_dict[m]['upper'] = next_m
+            # Also send loser to appropriate first loser round
+            loser_r = 2 * r
+            loser_m = losers_matches[loser_r][i]
+            match_dict[m]['lower'] = loser_m
 
-    return structure
+    # Wire Losers Bracket
+    for r, round_matches in enumerate(losers_matches[:-1]):
+        next_round = losers_matches[r + 1]
+        for i, m in enumerate(round_matches):
+            next_m = next_round[i // 2]
+            match_dict[m]['upper'] = next_m
+
+    # Wire Winners Final to Grand Final
+    final_w = winners_matches[-1][0]
+    final_l = losers_matches[-1][0]
+    grand_final = f'U{match_id}'
+    match_dict[grand_final] = {'upper': 'reset', 'lower': 'reset'}
+    match_dict[grand_final] = {'upper': None, 'lower': None}
+    match_dict[final_w]['upper'] = grand_final
+    match_dict[final_l]['upper'] = grand_final
+    
+    return match_dict
 
 def calculate_single_elimination():
     matches = []
@@ -173,68 +194,26 @@ def calculate_double_elimination():
         'lower': []
             }
     byes = next_power_of_two(len(ss.teams)-1) - len(ss.teams) + 1
-    bracketID = generate_double_elim_ids(len(ss.teams)-1)
+    bracket_dict = generate_double_elim_bracket(next_power_of_two(len(ss.teams)-1))
     count = 0
     participants = []
-    matchups = {
-        'upper': [],
-        'lower': []
-            }
     
-    for i, team in enumerate(ss.teams[1::]):
-        if count <= 1:
-            if byes > 0:
-                participants.append({"id": "", "name": team['header'], "isWinner": True, "status": None, "resultsText": ""})
-                count += 1
-                byes -= 1
-            else:
-                participants.append({"id": "", "name": team['header'], "isWinner": False, "status": None, "resultsText": ""})
-            count += 1
-        if count > 1:
-            matchups['upper'].append(participants)
-            count = 0
-            participants = []
-    
-    for i, ID in enumerate(bracketID['upper'][0]):
-        nextID = bracketID['upper'][1][i//2]
-        if matchups['upper'][i][0]['isWinner']:
-            state = "WALK_OVER"
-        else:
-            state = "SCHEDULED"
-        matches['upper'].append({
-            "id": ID,
+    for match in bracket_dict.keys():
+        side = 'upper' if 'U' in match else 'lower'
+        matches[side].append({
+            "id": match,
             "name": "",
-            "nextMatchId": nextID,
-            "nextLooserMatchID": None,
-            "tournamentRoundText": "1",
-            "state": state,
-            "participants": matchups['upper'][i],
-            "startTime": ""
-            })
-
-    for i, t_round in enumerate(bracketID['upper'][1::]):
-        for j, ID in enumerate(t_round): 
-            print("i " + str(i))
-            print("j " + str(j//2))
-            try:
-                nextID = bracketID['upper'][i+2][j//2]
-            except:
-                nextID = None
-            matches['upper'].append({
-            "id": ID,
-            "name": "",
-            "nextMatchId": nextID,
-            "nextLooserMatchID": None,
-            "tournamentRoundText": str(i+2),
+            "nextMatchId": bracket_dict[match]['upper'],
+            "nextLooserMatchID": bracket_dict[match]['lower'],
+            "tournamentRoundText": "",
             "state": "SCHEDULED",
-            "participants": [],
+            "participants": [{"id": "", "name": "Bob", "isWinner": True, "status": None, "resultsText": ""},
+                             {"id": "", "name": "Joe", "isWinner": False, "status": None, "resultsText": ""}],
             "startTime": ""
             })
-    st.write(bracketID)
-    st.write(matchups)
+    return matches
 
 matches = calculate_double_elimination()
-
+st.write(matches)
 # Render the bracket
 bracket = tournament_bracket(matches=matches)
-
