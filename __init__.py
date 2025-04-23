@@ -6,7 +6,7 @@ import streamlit.components.v1 as components
 import os
 from bracket_app import tournament_bracket
 import math
-import json
+
 # from sample_match_data import sample_match
 
 def initialize_ss():
