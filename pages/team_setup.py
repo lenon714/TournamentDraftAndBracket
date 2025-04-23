@@ -1,5 +1,11 @@
 from __init__ import *
-initialize_ss()
+
+st.set_page_config(
+    layout="wide"
+)
+
+ss.teams = ss.sorted_teams
+ss.team_score = ss.match_states[ss.current_match]
 
 def handle_add_and_rename(tc_keys):
     for i, player in enumerate(ss.setup_player_data.name):
@@ -57,11 +63,6 @@ def find_captains():
             cap_dict[team] += 1
     return cap_dict
 
-st.set_page_config(
-    page_title="Setup",
-    page_icon="👋",
-)
-
 ss.teams = ss.sorted_teams
 
 st.write("# This is the Setup")
@@ -84,19 +85,20 @@ ss.setup_player_data = st.data_editor(
     ss.player_data,
     key='player_data_editor',
     column_config={
-        "name": st.column_config.Column(
+        'name': st.column_config.Column(
             "List of Players",
             width="large",
             required=True,
             pinned=True,
         ),
-        "captain": st.column_config.CheckboxColumn(
+        'captain': st.column_config.CheckboxColumn(
             "Captains",
             width="medium",
             default=False,
             pinned=True,
         )
     },
+    width=641,
     hide_index=True,
     num_rows="dynamic",
 )
@@ -112,9 +114,8 @@ ss.setup_player_data = ss.setup_player_data.reset_index(drop=True)
 ss.player_config = {}
 generate_player_config()
 
-# For Debug
 cap_dict = find_captains()
-update_captains()
+# update_captains()
 
 st.write(cap_dict)
 st.write(ss.player_data)

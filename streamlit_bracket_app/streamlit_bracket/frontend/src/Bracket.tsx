@@ -22,7 +22,7 @@ interface MatchData {
   id: number;
   name: string;
   nextMatchId: number | null;
-  nextLooserMatchId: number | null,
+  nextLoserMatchId: number | null,
   tournamentRoundText: string;
   startTime: string;
   state: string;
@@ -63,7 +63,7 @@ const DoubleElimination = (props: ComponentProps) => {
   }
 
   return (
-    <div style={{ width: "100%", overflowX: "auto" }}>
+    <div style={{ width: "95%", overflowX: "auto" }}>
     <div
       ref={wrapperRef}
       style={{
