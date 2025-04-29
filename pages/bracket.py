@@ -1,13 +1,4 @@
-from __init__ import *
-
-st.set_page_config(
-    layout="wide"
-)
-
-ss.teams = ss.sorted_teams
-ss.team_score = ss.match_states[ss.current_match]
-
-st.write("# This is the Bracket")
+from pages import *
 
 def next_power_of_two(n):
     return 1 if n <= 1 else 2**math.ceil(math.log2(n))
@@ -205,7 +196,7 @@ def calculate_double_elimination():
             "id": match,
             "name": match,
             "nextMatchId": bracket_dict[match]['upper'],
-            "nextLoserMatchID": bracket_dict[match]['lower'],
+            "nextLoserMatchId": bracket_dict[match]['lower'],
             "tournamentRoundText": round_text[i],
             "state": state,
             "participants": matchups[i],
@@ -213,57 +204,84 @@ def calculate_double_elimination():
             })
     return matches
 
-def update_double_elim(matches):
-    # Setups up next match in bracket
-    for bracket in matches.keys():
-        for match in matches[bracket]:
-            if match['state'] == 'SCORE_DONE':
-                # Grand Finals Edge Case
-                if 'GF' in match['nextMatchId']:
-                    match_idx = -2 if match['nextMatchId'] == 'GF' else -1
-                    next_match_team = matches['lower'][match_idx]['participants']
-                    for m in range(len(match['participants'])):
-                        teams = [t['id'] for t in next_match_team]
-                        if (match['participants'][m]['isWinner'] or match_idx == -1) and match['participants'][m]['id'] not in teams :
-                            next_match_team.append(match['participants'][m].copy())
-                            next_match_team[-1]['isWinner'] = False
-                            next_match_team[-1]['status'] = None
-                            next_match_team[-1]['resultText'] = ""
-                            break
+def remove_participant_by_id(data, participant_id):
+    data['participants'] = [
+        participant for participant in data.get('participants', [])
+        if participant.get('id') != participant_id
+    ]
+    return data
 
-                # Move winners
-                for i, next_match in enumerate(matches[bracket]):
-                    if next_match['id'] == match['nextMatchId']:
-                        for j in range(len(match['participants'])):
-                            teams = [t['id'] for t in next_match['participants']]
-                            if match['participants'][j]['isWinner'] and match['participants'][j]['id'] not in teams:
-                                matches[bracket][i]['participants'].append(match['participants'][j].copy())
-                                matches[bracket][i]['participants'][-1]['isWinner'] = False
-                                matches[bracket][i]['participants'][-1]['status'] = None
-                                matches[bracket][i]['participants'][-1]['resultText'] = ""
-                                break
-                        break
+def update_bracket(bracket):
+    bracket = update_winners(bracket)
+    bracket = update_losers(bracket)
+    return bracket
 
-                # Move losers
-                for k, next_match in enumerate(matches['lower']):
-                    if next_match['id'] == match['nextLoserMatchID']:
-                        for l in range(len(match['participants'])):
-                            teams = [t['id'] for t in next_match['participants']]
-                            if not match['participants'][l]['isWinner'] and match['participants'][l]['id'] not in teams:
-                                matches['lower'][k]['participants'].append(match['participants'][l].copy())
-                                matches['lower'][k]['participants'][-1]['status'] = None
-                                matches['lower'][k]['participants'][-1]['resultText'] = "0"
-                                break
-                        break
-    return matches
+def update_winners(bracket):
+    for match in bracket['upper']:
+        winner_count = sum(1 for participant in match.get('participants', []) if participant.get('isWinner'))
+        next_match = next((m for m in bracket['upper'] + bracket['lower'] if m.get('id') == match['nextMatchId']), None)
+        next_losers_match = next((m for m in bracket['lower'] if m.get('id') == match['nextLoserMatchId']), None)
+        if winner_count == 1 and next_match is not None:
+            for participant in match['participants']:
+                if participant['isWinner'] and not any(p.get('id') == participant['id'] for p in next_match['participants']):
+                    next_match['participants'].append(participant.copy())
+                    next_match['participants'][-1]['resultText'] = '0'
+                    next_match['participants'][-1]['isWinner'] = False
+                    ss.match_states[match['nextMatchId']][participant['id']] = next((entry['items'] for entry in ss.teams if entry['header'] == participant['id']), None)
+                elif not participant['isWinner'] and not any(p.get('id') == participant['id'] for p in next_losers_match['participants']):
+                    next_losers_match['participants'].append(participant.copy())
+                    next_losers_match['participants'][-1]['resultText'] = '0'
+                    ss.match_states[match['nextLoserMatchId']][participant['id']] = next((entry['items'] for entry in ss.teams if entry['header'] == participant['id']), None)
+        elif next_match is not None and next_losers_match is not None:
+            for participant in match['participants']:
+                if any(p.get('id') == participant['id'] for p in next_match['participants']):
+                    next_match = remove_participant_by_id(next_match, participant['id'])
+                    del ss.match_states[match['nextMatchId']][participant['id']]
+                elif any(p.get('id') == participant['id'] for p in next_losers_match['participants']):
+                    next_losers_match = remove_participant_by_id(next_losers_match, participant['id'])
+                    del ss.match_states[match['nextLoserMatchId']][participant['id']]
+    return bracket
 
-if ss.matches == {'upper': [], 'lower': []}:
-    ss.matches = calculate_double_elimination()
-    
-ss.matches = update_double_elim(ss.matches)
+def update_losers(bracket):
+    for match in bracket['lower']:
+        winner_count = sum(1 for participant in match.get('participants', []) if participant.get('isWinner'))
+        next_match = next((m for m in bracket['lower'] if m.get('id') == match['nextMatchId']), None)
+        if winner_count == 1 and next_match is not None:
+            for participant in match['participants']:
+                if participant['isWinner'] and not any(p.get('id') == participant['id'] for p in next_match['participants']):
+                    next_match['participants'].append(participant.copy())
+                    next_match['participants'][-1]['resultText'] = '0'
+                    next_match['participants'][-1]['isWinner'] = False
+                    ss.match_states[match['nextMatchId']][participant['id']] = next((entry['items'] for entry in ss.teams if entry['header'] == participant['id']), None)
+        elif next_match is not None:
+            for participant in match['participants']:
+                if any(p.get('id') == participant['id'] for p in next_match['participants']):
+                    next_match = remove_participant_by_id(next_match, participant['id'])
+                    del ss.match_states[match['nextMatchId']][participant['id']]
+    return bracket
 
-# Render the bracket
-if ss.matches != {'upper': [], 'lower': []}:
-    bracket = tournament_bracket(matches=ss.matches)
+def main():
+    st.set_page_config(
+    layout="wide"
+    )
 
-st.write(ss.matches)
+    ss.teams = ss.sorted_teams
+    ss.team_score = ss.match_states[ss.current_match]
+
+    st.write("# This is the Bracket")
+
+    if ss.matches == {'upper': [], 'lower': []}:
+        ss.matches = calculate_double_elimination()
+        init_teams()
+
+    ss.matches = update_bracket(ss.matches)
+
+    update_server_state()
+
+    # Render the bracket
+    if ss.matches != {'upper': [], 'lower': []}:
+        bracket = tournament_bracket(matches=server_state.matches, teams=server_state.teams, scores=server_state.match_wins)
+
+    st.write(ss.matches)
+if __name__ == "__main__":
+    main()

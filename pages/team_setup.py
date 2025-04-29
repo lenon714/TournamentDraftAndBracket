@@ -1,11 +1,4 @@
-from __init__ import *
-
-st.set_page_config(
-    layout="wide"
-)
-
-ss.teams = ss.sorted_teams
-ss.team_score = ss.match_states[ss.current_match]
+from pages import *
 
 def handle_add_and_rename(tc_keys):
     for i, player in enumerate(ss.setup_player_data.name):
@@ -63,61 +56,74 @@ def find_captains():
             cap_dict[team] += 1
     return cap_dict
 
-ss.teams = ss.sorted_teams
+def main():
+    st.set_page_config(
+    layout="wide"
+    )
 
-st.write("# This is the Setup")
+    ss.teams = ss.sorted_teams
+    ss.player_data = ss.setup_player_data
+    ss.team_score = ss.match_states[ss.current_match]
+    
+    st.write("# This is the Setup")
 
-num_teams = st.number_input("Number of Teams:")
+    num_teams = st.number_input("Number of Teams:")
 
-update_team_button = st.button('Update Number of Teams')
-if update_team_button:
-    ss.num_teams = num_teams
-    curr_num_teams = len(ss.teams)
-    team_diff = int(num_teams) - curr_num_teams + 1
-    if team_diff > 0:
-        for i in range(team_diff):
-            ss.teams.append({'header': 'Team ' + str(i + curr_num_teams), 'items': []})
-    elif team_diff <= 0:
-        for i in range(abs(team_diff)):
-            ss.teams.pop()
+    update_team_button = st.button('Update Number of Teams')
+    if update_team_button:
+        ss.num_teams = num_teams
+        curr_num_teams = len(ss.teams)
+        team_diff = int(num_teams) - curr_num_teams + 1
+        if team_diff > 0:
+            for i in range(team_diff):
+                ss.teams.append({'header': 'Team ' + str(i + curr_num_teams), 'items': []})
+        elif team_diff <= 0:
+            for i in range(abs(team_diff)):
+                ss.teams.pop()
 
-ss.setup_player_data = st.data_editor(
-    ss.player_data,
-    key='player_data_editor',
-    column_config={
-        'name': st.column_config.Column(
-            "List of Players",
-            width="large",
-            required=True,
-            pinned=True,
-        ),
-        'captain': st.column_config.CheckboxColumn(
-            "Captains",
-            width="medium",
-            default=False,
-            pinned=True,
-        )
-    },
-    width=641,
-    hide_index=True,
-    num_rows="dynamic",
-)
+    ss.setup_player_data = st.data_editor(
+        ss.player_data,
+        key='player_data_editor',
+        column_config={
+            'name': st.column_config.Column(
+                "List of Players",
+                width="large",
+                required=True,
+                pinned=True,
+            ),
+            'captain': st.column_config.CheckboxColumn(
+                "Captains",
+                width="medium",
+                default=False,
+                pinned=True,
+            )
+        },
+        width=641,
+        hide_index=True,
+        num_rows="dynamic",
+    )
 
-tc_keys = list(ss.player_config.keys())
-handle_add_and_rename(tc_keys)
+    tc_keys = list(ss.player_config.keys())
+    handle_add_and_rename(tc_keys)
 
-removed_players = set(tc_keys) - set(ss.setup_player_data.name)
-remove_players(removed_players)
+    removed_players = set(tc_keys) - set(ss.setup_player_data.name)
+    remove_players(removed_players)
 
-ss.setup_player_data = ss.setup_player_data.reset_index(drop=True)
+    ss.setup_player_data = ss.setup_player_data.reset_index(drop=True)
 
-ss.player_config = {}
-generate_player_config()
+    ss.player_config = {}
+    generate_player_config()
 
-cap_dict = find_captains()
-# update_captains()
+    cap_dict = find_captains()
+    # update_captains()
 
-st.write(cap_dict)
-st.write(ss.player_data)
-st.write(ss.player_config)
-st.write(ss.sorted_teams)
+    ss.prev_match = ""
+    # ss.current_match = match['id']
+    ss.match_states[ss.current_match] = find_teams()
+
+    st.write(cap_dict)
+    st.write(ss.player_data)
+    st.write(ss.player_config)
+    st.write(ss.sorted_teams)
+if __name__ == "__main__":
+    main()
