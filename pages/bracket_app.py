@@ -2,7 +2,8 @@ from pages import *
 
 _component_func = components.declare_component(
     "bracket",
-    path=os.path.join(os.path.dirname(__file__), "bracket_app/streamlit_bracket/frontend/build")
+    path='/mount/src/tournamentdraftandbracket/bracket_app/streamlit_bracket/frontend/build'
+    # path=os.path.join('C:/Users/lenon/OneDrive/Documents/GitHub/TournamentDraftAndBracket/bracket_app/streamlit_bracket/frontend/build')
     # url='http://localhost:3001'
 )
 
